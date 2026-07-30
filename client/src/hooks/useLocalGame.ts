@@ -13,16 +13,8 @@ import {
   submitStory,
   submitVote,
 } from "../game/engine";
-import type { GameState, RoundImage } from "../game/types";
-
-async function fetchRoundImage(): Promise<RoundImage> {
-  const response = await fetch("/api/generate-image", { method: "POST" });
-  if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as { error?: string };
-    throw new Error(body.error ?? "Failed to generate image");
-  }
-  return response.json() as Promise<RoundImage>;
-}
+import type { GameState } from "../game/types";
+import { generateRoundImage } from "../game/generateImage";
 
 export function useLocalGame() {
   const [state, setState] = useState<GameState>(createInitialState);
@@ -34,7 +26,7 @@ export function useLocalGame() {
   const startGame = useCallback(async (names: string[], imposterCount: number) => {
     setState(beginGenerating(setupPlayers(names, imposterCount)));
     try {
-      const image = await fetchRoundImage();
+      const image = await generateRoundImage();
       setState((current) => beginRound(current, image));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Image generation failed";
@@ -59,7 +51,7 @@ export function useLocalGame() {
     if (!shouldGenerate) return;
 
     try {
-      const image = await fetchRoundImage();
+      const image = await generateRoundImage();
       setState((current) => beginRound(current, image));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Image generation failed";
