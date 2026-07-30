@@ -8,7 +8,7 @@ interface RevealScreenProps {
 }
 
 export function RevealScreen({ state, onNextRound, onQuit }: RevealScreenProps) {
-  const imposter = state.players.find((player) => player.id === state.imposterId);
+  const imposters = state.players.filter((player) => state.imposterIds.includes(player.id));
   const hasMoreRounds = state.roundNumber < state.maxRounds;
 
   return (
@@ -17,7 +17,7 @@ export function RevealScreen({ state, onNextRound, onQuit }: RevealScreenProps) 
 
       {state.winner && (
         <span className={`badge ${state.winner === "innocents" ? "badge-success" : "badge-danger"}`}>
-          {state.winner === "innocents" ? "Innocents win!" : "Imposter wins!"}
+          {state.winner === "innocents" ? "Innocents win!" : "Imposters win!"}
         </span>
       )}
 
@@ -31,10 +31,11 @@ export function RevealScreen({ state, onNextRound, onQuit }: RevealScreenProps) 
         </p>
       )}
 
-      {imposter && (
+      {imposters.length > 0 && (
         <div className="card" style={{ width: "100%" }}>
           <p>
-            The imposter was <strong>{imposter.name}</strong>
+            The imposter{imposters.length === 1 ? " was" : "s were"}{" "}
+            <strong>{imposters.map((p) => p.name).join(", ")}</strong>
           </p>
         </div>
       )}
@@ -73,7 +74,7 @@ export function RevealScreen({ state, onNextRound, onQuit }: RevealScreenProps) 
         <div className="stack centered">
           <p className="muted">Game over — thanks for playing!</p>
           <button className="btn-primary" onClick={onQuit}>
-            New game
+            Play again
           </button>
         </div>
       ) : (

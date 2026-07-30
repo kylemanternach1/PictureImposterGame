@@ -7,44 +7,6 @@ import {
 import { generateWithProvider } from "./imageProviders/generate.js";
 import type { CropRegion } from "./types.js";
 
-const COLOR_TAGS = [
-  "crimson",
-  "azure",
-  "emerald",
-  "amber",
-  "violet",
-  "teal",
-  "coral",
-  "indigo",
-  "lime",
-  "magenta",
-  "ochre",
-  "slate",
-];
-
-const OBJECT_TAGS = [
-  "lantern",
-  "umbrella",
-  "clock",
-  "feather",
-  "crystal",
-  "rope",
-  "mirror",
-  "candle",
-  "wheel",
-  "mask",
-  "key",
-  "compass",
-  "shell",
-  "gear",
-  "vine",
-  "coin",
-  "jellybean",
-  "carousel",
-  "blimp",
-  "mannequin",
-];
-
 export function pickCropRegion(): CropRegion {
   const width = 22 + Math.floor(Math.random() * 18);
   const height = 22 + Math.floor(Math.random() * 18);
@@ -53,22 +15,11 @@ export function pickCropRegion(): CropRegion {
   return { x, y, width, height };
 }
 
-export function pickColorTags(): string[] {
-  const shuffled = [...COLOR_TAGS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 3);
-}
-
-export function pickObjectTags(): string[] {
-  const shuffled = [...OBJECT_TAGS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 3);
-}
-
 export interface GeneratedImage {
   prompt: string;
   imageUrl: string;
   cropRegion: CropRegion;
-  colorTags: string[];
-  objectTags: string[];
+  hintTags: string[];
   provider: ImageProviderId;
 }
 
@@ -84,7 +35,6 @@ function resolveProviderChain(): ImageProviderId[] {
   const primary = resolveProvider();
   const chain: ImageProviderId[] = [primary];
 
-  // Only use Hugging Face if explicitly configured and a token is present
   if (primary === "pollinations" && process.env.HF_TOKEN?.trim()) {
     chain.push("huggingface");
   } else if (primary !== "pollinations") {
@@ -99,10 +49,8 @@ function resolveProviderChain(): ImageProviderId[] {
 }
 
 export async function generateImage(): Promise<GeneratedImage> {
-  const { sceneDescription, imagePrompt, negativePrompt } = buildChaoticScenePrompt();
+  const { sceneDescription, imagePrompt, negativePrompt, imposterHints } = buildChaoticScenePrompt();
   const cropRegion = pickCropRegion();
-  const colorTags = pickColorTags();
-  const objectTags = pickObjectTags();
 
   const providers = resolveProviderChain();
   let lastError: Error | null = null;
@@ -114,8 +62,7 @@ export async function generateImage(): Promise<GeneratedImage> {
         prompt: sceneDescription,
         imageUrl,
         cropRegion,
-        colorTags,
-        objectTags,
+        hintTags: imposterHints,
         provider,
       };
     } catch (error) {

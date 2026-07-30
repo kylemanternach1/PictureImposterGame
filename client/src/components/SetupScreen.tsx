@@ -1,21 +1,30 @@
 import { useState } from "react";
+import { GAME_NAME } from "../game/branding";
 import type { GameState } from "../game/types";
+import { maxImpostersForPlayers } from "../game/types";
 
 interface SetupScreenProps {
   state: GameState;
-  onStart: (names: string[]) => void;
+  onStart: (names: string[], imposterCount: number) => void;
 }
 
 export function SetupScreen({ state, onStart }: SetupScreenProps) {
   const [playerCount, setPlayerCount] = useState(state.players.length || state.minPlayers);
+  const [imposterCount, setImposterCount] = useState(state.imposterCount || 1);
   const [names, setNames] = useState<string[]>(
     state.players.length > 0
       ? state.players.map((player) => player.name)
       : Array.from({ length: state.minPlayers }, () => ""),
   );
 
+  const maxImposters = maxImpostersForPlayers(playerCount);
+
   function updateCount(count: number) {
     setPlayerCount(count);
+    const newMax = maxImpostersForPlayers(count);
+    if (imposterCount > newMax) {
+      setImposterCount(newMax);
+    }
     setNames((current) => {
       if (count > current.length) {
         return [...current, ...Array.from({ length: count - current.length }, () => "")];
@@ -30,18 +39,15 @@ export function SetupScreen({ state, onStart }: SetupScreenProps) {
 
   function handleStart() {
     const resolvedNames = names.map((name, index) => name.trim() || `Player ${index + 1}`);
-    onStart(resolvedNames);
+    onStart(resolvedNames, imposterCount);
   }
 
   return (
     <div className="stack centered">
       <div className="stack centered" style={{ marginBottom: "0.5rem" }}>
-        <span className="badge">Pass &amp; play</span>
-        <h1 className="hero-title">Picture Imposter</h1>
-        <p className="hero-subtitle">
-          One device, one surreal image, one imposter who only sees a sneak peek. Pass the phone
-          around — tap your name when it&apos;s your turn.
-        </p>
+        <p className="game-tagline muted">{GAME_NAME}</p>
+        <h1 className="hero-title">Game setup</h1>
+        <p className="hero-subtitle">Choose players and imposters, then enter everyone&apos;s names.</p>
       </div>
 
       {state.generatingError && <div className="error-banner">{state.generatingError}</div>}
@@ -57,6 +63,21 @@ export function SetupScreen({ state, onStart }: SetupScreenProps) {
             onChange={(e) => updateCount(Number(e.target.value))}
           />
           <span className="muted centered">{playerCount} players</span>
+        </label>
+
+        <label className="stack" style={{ gap: "0.4rem" }}>
+          <span>Number of imposters (1–{maxImposters})</span>
+          <input
+            type="range"
+            min={1}
+            max={maxImposters}
+            value={Math.min(imposterCount, maxImposters)}
+            onChange={(e) => setImposterCount(Number(e.target.value))}
+          />
+          <span className="muted centered">
+            {Math.min(imposterCount, maxImposters)} imposter
+            {Math.min(imposterCount, maxImposters) === 1 ? "" : "s"}
+          </span>
         </label>
 
         <div className="stack">

@@ -124,6 +124,8 @@ export interface ScenePrompt {
   /** Full prompt sent to the image model. */
   imagePrompt: string;
   negativePrompt: string;
+  /** 3–4 words/phrases from the scene for imposter hints. */
+  imposterHints: string[];
 }
 
 export function buildChaoticScenePrompt(): ScenePrompt {
@@ -158,7 +160,61 @@ export function buildChaoticScenePrompt(): ScenePrompt {
     "blurry, watermark, text, logo, frame, border.",
   ].join(" ");
 
-  return { sceneDescription, imagePrompt, negativePrompt };
+  const imposterHints = buildImposterHints(setting, subject, action, objects, backgroundEvent);
+
+  return { sceneDescription, imagePrompt, negativePrompt, imposterHints };
+}
+
+function buildImposterHints(
+  setting: string,
+  subject: string,
+  action: string,
+  objects: string[],
+  backgroundEvent: string,
+): string[] {
+  const candidates = [
+    phraseToHint(setting),
+    phraseToHint(subject),
+    phraseToHint(action),
+    ...objects.map(phraseToHint),
+    phraseToHint(backgroundEvent),
+  ].filter((hint) => hint.length >= 3);
+
+  const unique = [...new Set(candidates)];
+  const hintCount = Math.min(unique.length, 3 + Math.floor(Math.random() * 2));
+  return shuffle(unique).slice(0, hintCount);
+}
+
+function phraseToHint(phrase: string): string {
+  let cleaned = phrase
+    .replace(/^in /i, "")
+    .replace(/^while /i, "")
+    .replace(/^as /i, "")
+    .replace(/^a |^an |^the /i, "")
+    .replace(/\.$/, "")
+    .trim();
+
+  const ofMatch = cleaned.match(/\bof (.+)$/i);
+  if (ofMatch?.[1]) {
+    cleaned = ofMatch[1];
+  }
+
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  if (words.length > 4) {
+    cleaned = words.slice(-4).join(" ");
+  }
+
+  if (!cleaned) return "";
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j]!, copy[i]!];
+  }
+  return copy;
 }
 
 export function buildPlaceholderSeed(sceneDescription: string): string {

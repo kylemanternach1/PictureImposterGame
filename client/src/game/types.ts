@@ -1,4 +1,5 @@
 export type GamePhase =
+  | "intro"
   | "setup"
   | "generating"
   | "viewing"
@@ -38,8 +39,7 @@ export interface RoundImage {
   prompt: string;
   imageUrl: string;
   cropRegion: CropRegion;
-  colorTags: string[];
-  objectTags: string[];
+  hintTags: string[];
 }
 
 export interface GameState {
@@ -49,14 +49,15 @@ export interface GameState {
   maxRounds: number;
   minPlayers: number;
   maxPlayers: number;
-  imposterId: string | null;
+  imposterCount: number;
+  imposterIds: string[];
   image: RoundImage | null;
   story: StorySegment[];
   turnOrder: string[];
   currentTurnIndex: number;
   activePlayerId: string | null;
   contentRevealed: boolean;
-  winner: "innocents" | "imposter" | null;
+  winner: "innocents" | "imposters" | null;
   voteResults: Record<string, number> | null;
   generatingError: string | null;
 }
@@ -64,3 +65,7 @@ export interface GameState {
 export const STORY_MIN_WORDS = 3;
 export const STORY_MAX_WORDS = 30;
 export const VIEWING_DURATION_MS = 10_000;
+
+export function maxImpostersForPlayers(playerCount: number): number {
+  return Math.max(1, playerCount - 1);
+}

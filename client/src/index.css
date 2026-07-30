@@ -240,20 +240,13 @@ textarea::placeholder {
   transform-origin: top left;
 }
 
-.partial-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  pointer-events: none;
-}
-
 .partial-hint {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   padding: 0.75rem 1rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  background: linear-gradient(transparent, rgba(15, 17, 24, 0.92));
   font-size: 0.9rem;
 }
 
@@ -415,4 +408,101 @@ textarea::placeholder {
   background: rgba(15, 17, 24, 0.85);
   z-index: 100;
   padding: 1rem;
+}
+
+.game-hero {
+  gap: 0.65rem;
+}
+
+.game-tagline {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c8b8ff;
+}
+
+.game-title {
+  background: linear-gradient(135deg, #f4f6fb 20%, #c8b8ff 55%, #7c5cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.instructions-card {
+  width: 100%;
+  max-width: 520px;
+  text-align: left;
+}
+
+.instruction-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.step-number {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: #c8b8ff;
+  font-weight: 700;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.instruction-step p {
+  margin: 0.25rem 0 0;
+}
+
+.privacy-reminder {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 179, 71, 0.1);
+  border: 1px solid rgba(255, 179, 71, 0.35);
+  font-size: 0.95rem;
+}
+
+.private-session-banner {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 179, 71, 0.12);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  color: #ffd89a;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.privacy-pass-hint {
+  max-width: 360px;
+  text-align: center;
+}
+
+.private-role-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 1.25rem;
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.private-role-card h3 {
+  margin: 0.5rem 0;
+}
+
+.first-player-announcement {
+  width: 100%;
+  border-color: rgba(61, 214, 140, 0.35);
+  background: rgba(61, 214, 140, 0.08);
+}
+
+.first-player-announcement h2 {
+  margin: 0;
 }

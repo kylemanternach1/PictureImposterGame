@@ -1,10 +1,10 @@
-import type { CropRegion } from "./types";
+import type { CropRegion } from "../game/types";
 
 interface GameImageProps {
   imageUrl: string;
   viewMode: "full" | "partial";
   cropRegion?: CropRegion | null;
-  colorTags?: string[] | null;
+  hintTags?: string[] | null;
   alt?: string;
 }
 
@@ -12,7 +12,7 @@ export function GameImage({
   imageUrl,
   viewMode,
   cropRegion,
-  colorTags,
+  hintTags,
   alt = "Round image",
 }: GameImageProps) {
   if (viewMode === "partial" && cropRegion) {
@@ -34,21 +34,20 @@ export function GameImage({
             backgroundRepeat: "no-repeat",
           }}
         />
-        <div className="partial-overlay" />
-        <div className="partial-hint">
-          <div className="muted" style={{ marginBottom: "0.35rem" }}>
-            Sneak peek only — you only see a fragment
-          </div>
-          {colorTags && colorTags.length > 0 && (
+        {hintTags && hintTags.length > 0 && (
+          <div className="partial-hint">
+            <div className="muted" style={{ marginBottom: "0.35rem" }}>
+              Hint words from the scene
+            </div>
             <div className="tag-row">
-              {colorTags.map((tag) => (
+              {hintTags.map((tag) => (
                 <span key={tag} className="tag">
                   {tag}
                 </span>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -1,15 +1,16 @@
 import type { GameState, Player, PlayerRole, RoundImage, StorySegment } from "./types";
-import { STORY_MAX_WORDS, STORY_MIN_WORDS } from "./types";
+import { STORY_MAX_WORDS, STORY_MIN_WORDS, maxImpostersForPlayers } from "./types";
 
 export function createInitialState(): GameState {
   return {
-    phase: "setup",
+    phase: "intro",
     players: [],
     roundNumber: 0,
     maxRounds: 5,
     minPlayers: 2,
     maxPlayers: 10,
-    imposterId: null,
+    imposterCount: 1,
+    imposterIds: [],
     image: null,
     story: [],
     turnOrder: [],
@@ -22,7 +23,15 @@ export function createInitialState(): GameState {
   };
 }
 
-export function setupPlayers(names: string[]): GameState {
+export function goToSetup(state: GameState): GameState {
+  return {
+    ...state,
+    phase: "setup",
+    generatingError: null,
+  };
+}
+
+export function setupPlayers(names: string[], imposterCount: number): GameState {
   const players: Player[] = names.map((name, index) => ({
     id: `player-${index}-${crypto.randomUUID()}`,
     name: name.trim().slice(0, 24) || `Player ${index + 1}`,
@@ -33,9 +42,15 @@ export function setupPlayers(names: string[]): GameState {
     hasViewedImage: false,
   }));
 
+  const safeImposterCount = Math.min(
+    Math.max(1, imposterCount),
+    maxImpostersForPlayers(players.length),
+  );
+
   return {
     ...createInitialState(),
     players,
+    imposterCount: safeImposterCount,
     phase: "setup",
   };
 }
@@ -58,18 +73,25 @@ export function beginRound(state: GameState, image: RoundImage): GameState {
     hasViewedImage: false,
   }));
 
-  const imposterIndex = Math.floor(Math.random() * players.length);
-  const imposterId = players[imposterIndex]!.id;
-  players[imposterIndex]!.role = "imposter";
+  const shuffledIds = shuffle(players.map((player) => player.id));
+  const imposterIds = shuffledIds.slice(0, state.imposterCount);
+  for (const player of players) {
+    if (imposterIds.includes(player.id)) {
+      player.role = "imposter";
+    }
+  }
 
-  const turnOrder = shuffle(players.map((player) => player.id));
+  const turnOrder = buildStoryTurnOrder(
+    players.map((player) => player.id),
+    imposterIds,
+  );
 
   return {
     ...state,
     phase: "viewing",
     roundNumber: state.roundNumber + 1,
     players,
-    imposterId,
+    imposterIds,
     image,
     story: [],
     turnOrder,
@@ -206,13 +228,13 @@ export function resolveVotes(state: GameState): GameState {
     .filter(([, votes]) => votes === topVotes)
     .map(([playerId]) => playerId);
 
-  const imposterCaught = state.imposterId ? topCandidates.includes(state.imposterId) : false;
+  const imposterCaught = topCandidates.some((id) => state.imposterIds.includes(id));
 
   return {
     ...state,
     phase: "reveal",
     voteResults: tally,
-    winner: imposterCaught ? "innocents" : "imposter",
+    winner: imposterCaught ? "innocents" : "imposters",
     activePlayerId: null,
     contentRevealed: true,
   };
@@ -229,6 +251,10 @@ export function resetGame(): GameState {
   return createInitialState();
 }
 
+export function isImposter(state: GameState, playerId: string): boolean {
+  return state.imposterIds.includes(playerId);
+}
+
 function computeFitScores(state: GameState): GameState {
   const image = state.image;
   if (!image) return state;
@@ -242,8 +268,7 @@ function computeFitScores(state: GameState): GameState {
       fitScore: computeFitScore(
         player.storyContribution,
         image.prompt,
-        image.colorTags,
-        image.objectTags,
+        image.hintTags,
       ),
     };
   });
@@ -254,13 +279,12 @@ function computeFitScores(state: GameState): GameState {
 function computeFitScore(
   contribution: string,
   prompt: string,
-  colorTags: string[],
-  objectTags: string[],
+  hintTags: string[],
 ): number {
   const words = contribution.toLowerCase().split(/\s+/).filter(Boolean);
   if (words.length === 0) return 0;
 
-  const haystack = `${prompt} ${colorTags.join(" ")} ${objectTags.join(" ")}`.toLowerCase();
+  const haystack = `${prompt} ${hintTags.join(" ")}`.toLowerCase();
   const promptTokens = new Set(
     haystack.split(/[^a-z0-9]+/).filter((token) => token.length > 3),
   );
@@ -279,6 +303,23 @@ function computeFitScore(
   const lengthPenalty = words.length < 5 ? 0.15 : 0;
   const raw = relevance * 85 + 10 - lengthPenalty * 100;
   return Math.round(Math.max(5, Math.min(98, raw)));
+}
+
+function buildStoryTurnOrder(playerIds: string[], imposterIds: string[]): string[] {
+  const innocents = playerIds.filter((id) => !imposterIds.includes(id));
+  const imposters = playerIds.filter((id) => imposterIds.includes(id));
+
+  if (innocents.length === 0) {
+    return shuffle(playerIds);
+  }
+
+  const firstPlayerId = innocents[Math.floor(Math.random() * innocents.length)]!;
+  const remaining = shuffle([
+    ...innocents.filter((id) => id !== firstPlayerId),
+    ...imposters,
+  ]);
+
+  return [firstPlayerId, ...remaining];
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -303,6 +344,11 @@ export function getCurrentStoryPlayer(state: GameState): Player | undefined {
   return state.players.find((player) => player.id === id);
 }
 
+export function getFirstStoryPlayer(state: GameState): Player | undefined {
+  const id = state.turnOrder[0];
+  return state.players.find((player) => player.id === id);
+}
+
 export function getImposterHintTags(image: RoundImage): string[] {
-  return [...image.colorTags, ...image.objectTags.slice(0, 2)];
+  return image.hintTags;
 }

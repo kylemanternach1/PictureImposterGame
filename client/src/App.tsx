@@ -1,4 +1,5 @@
 import { DiscussionScreen } from "./components/DiscussionScreen";
+import { IntroScreen } from "./components/IntroScreen";
 import { RevealScreen } from "./components/RevealScreen";
 import { SetupScreen } from "./components/SetupScreen";
 import { StoryPhase } from "./components/StoryPhase";
@@ -9,6 +10,7 @@ import { useLocalGame } from "./hooks/useLocalGame";
 export default function App() {
   const {
     state,
+    openSetup,
     startGame,
     startNextRoundFlow,
     tapPlayer,
@@ -16,7 +18,7 @@ export default function App() {
     addStoryContribution,
     castVote,
     advanceToVoting,
-    quitToSetup,
+    quitToIntro,
   } = useLocalGame();
 
   if (state.phase === "generating") {
@@ -32,7 +34,9 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      {state.phase === "setup" ? (
+      {state.phase === "intro" ? (
+        <IntroScreen onBegin={openSetup} />
+      ) : state.phase === "setup" ? (
         <SetupScreen state={state} onStart={startGame} />
       ) : state.phase === "viewing" ? (
         <ViewingPhase
@@ -58,7 +62,7 @@ export default function App() {
         <RevealScreen
           state={state}
           onNextRound={startNextRoundFlow}
-          onQuit={quitToSetup}
+          onQuit={quitToIntro}
         />
       ) : null}
     </main>

@@ -4,6 +4,7 @@ import {
   beginRound,
   createInitialState,
   finishViewing,
+  goToSetup,
   goToVoting,
   resetGame,
   selectActivePlayer,
@@ -26,8 +27,12 @@ async function fetchRoundImage(): Promise<RoundImage> {
 export function useLocalGame() {
   const [state, setState] = useState<GameState>(createInitialState);
 
-  const startGame = useCallback(async (names: string[]) => {
-    setState(beginGenerating(setupPlayers(names)));
+  const openSetup = useCallback(() => {
+    setState((current) => goToSetup(current));
+  }, []);
+
+  const startGame = useCallback(async (names: string[], imposterCount: number) => {
+    setState(beginGenerating(setupPlayers(names, imposterCount)));
     try {
       const image = await fetchRoundImage();
       setState((current) => beginRound(current, image));
@@ -86,12 +91,13 @@ export function useLocalGame() {
     setState((current) => goToVoting(current));
   }, []);
 
-  const quitToSetup = useCallback(() => {
+  const quitToIntro = useCallback(() => {
     setState(resetGame());
   }, []);
 
   return {
     state,
+    openSetup,
     startGame,
     startNextRoundFlow,
     tapPlayer,
@@ -99,6 +105,6 @@ export function useLocalGame() {
     addStoryContribution,
     castVote,
     advanceToVoting,
-    quitToSetup,
+    quitToIntro,
   };
 }

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { getImposterHintTags } from "../game/engine";
+import { useEffect, useState } from "react";
+import { getImposterHintTags, isImposter } from "../game/engine";
 import type { GameState } from "../game/types";
 import { VIEWING_DURATION_MS } from "../game/types";
 import { GameImage } from "./GameImage";
@@ -11,67 +11,83 @@ interface ViewingPhaseProps {
   onCompleteViewing: (playerId: string) => void;
 }
 
+type ViewStep = "role" | "image";
+
 export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: ViewingPhaseProps) {
+  const [viewStep, setViewStep] = useState<ViewStep>("role");
   const activePlayer = state.players.find((player) => player.id === state.activePlayerId);
-  const viewedCount = state.players.filter((player) => player.hasViewedImage).length;
 
   useEffect(() => {
-    if (!state.contentRevealed || !activePlayer) return;
+    if (state.activePlayerId) {
+      setViewStep("role");
+    }
+  }, [state.activePlayerId]);
+
+  useEffect(() => {
+    if (!state.contentRevealed || !activePlayer || viewStep !== "image") return;
 
     const timer = setTimeout(() => {
       onCompleteViewing(activePlayer.id);
     }, VIEWING_DURATION_MS);
 
     return () => clearTimeout(timer);
-  }, [state.contentRevealed, activePlayer, onCompleteViewing]);
+  }, [state.contentRevealed, activePlayer, viewStep, onCompleteViewing]);
 
   if (!state.image) return null;
 
-  const isImposter = activePlayer?.role === "imposter";
+  const playerIsImposter = activePlayer ? isImposter(state, activePlayer.id) : false;
 
   return (
     <PassAndPlayGate
-      title="Study the image"
-      subtitle={`Round ${state.roundNumber} · ${viewedCount}/${state.players.length} players have looked`}
+      title="Private viewing"
+      subtitle="Pass the device one player at a time"
       players={state.players}
       activePlayerId={state.activePlayerId}
       contentRevealed={state.contentRevealed}
       isPlayerEligible={(player) => !player.hasViewedImage}
       isPlayerDone={(player) => player.hasViewedImage}
       onSelectPlayer={onSelectPlayer}
-      coverMessage="Pass the device. Only tap your name when you're ready to look."
+      coverMessage="Look away, then hand the device to the next player. They tap their name when ready."
     >
       {activePlayer && (
         <div className="stack centered">
-          <p>
-            <strong>{activePlayer.name}</strong>
-            {isImposter ? (
-              <span className="badge badge-danger" style={{ marginLeft: "0.5rem" }}>
-                Imposter — sneak peek only
-              </span>
-            ) : (
-              <span className="badge badge-success" style={{ marginLeft: "0.5rem" }}>
-                Innocent — full image
-              </span>
-            )}
-          </p>
+          {viewStep === "role" ? (
+            <>
+              <div className="private-role-card">
+                <p className="muted" style={{ margin: 0 }}>
+                  {activePlayer.name}, your assignment:
+                </p>
+                <h3>{playerIsImposter ? "You are an imposter" : "You are innocent"}</h3>
+                <p className="muted">
+                  {playerIsImposter
+                    ? "You will only see a small fragment of the image plus a few hints. Blend into the story without revealing you didn't see the full scene."
+                    : "You will see the complete image. Pay attention to every detail — you'll need them for the story and to spot imposters later."}
+                </p>
+              </div>
+              <button className="btn-primary" onClick={() => setViewStep("image")}>
+                Continue to image
+              </button>
+            </>
+          ) : (
+            <>
+              <GameImage
+                imageUrl={state.image.imageUrl}
+                viewMode={playerIsImposter ? "partial" : "full"}
+                cropRegion={state.image.cropRegion}
+                hintTags={playerIsImposter ? getImposterHintTags(state.image) : null}
+              />
 
-          <GameImage
-            imageUrl={state.image.imageUrl}
-            viewMode={isImposter ? "partial" : "full"}
-            cropRegion={state.image.cropRegion}
-            colorTags={isImposter ? getImposterHintTags(state.image) : null}
-          />
+              <p className="muted" style={{ maxWidth: 420 }}>
+                {playerIsImposter
+                  ? "Memorize what you can from this fragment."
+                  : "Memorize the full scene — you'll build a story from it."}
+              </p>
 
-          <p className="muted" style={{ maxWidth: 420 }}>
-            {isImposter
-              ? "You only see a fragment. Memorize what you can — you'll need to blend into the story."
-              : "Memorize the scene. You'll build a story together — watch for odd tangents later."}
-          </p>
-
-          <button className="btn-primary" onClick={() => onCompleteViewing(activePlayer.id)}>
-            Done — pass device
-          </button>
+              <button className="btn-primary" onClick={() => onCompleteViewing(activePlayer.id)}>
+                Done — pass device
+              </button>
+            </>
+          )}
         </div>
       )}
     </PassAndPlayGate>

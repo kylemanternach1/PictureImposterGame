@@ -9,19 +9,18 @@ interface VotingPhaseProps {
 
 export function VotingPhase({ state, onSelectPlayer, onVote }: VotingPhaseProps) {
   const activePlayer = state.players.find((player) => player.id === state.activePlayerId);
-  const votedCount = state.players.filter((player) => player.voteTargetId).length;
 
   return (
     <PassAndPlayGate
-      title="Vote out the imposter"
-      subtitle={`${votedCount}/${state.players.length} votes cast`}
+      title="Vote out an imposter"
+      subtitle="Each player votes privately"
       players={state.players}
       activePlayerId={state.activePlayerId}
       contentRevealed={state.contentRevealed}
       isPlayerEligible={(player) => !player.voteTargetId}
       isPlayerDone={(player) => Boolean(player.voteTargetId)}
       onSelectPlayer={onSelectPlayer}
-      coverMessage="Pass the device. Tap your name to cast your secret vote."
+      coverMessage="Tap your name to cast a secret vote. Don't let anyone see your choice."
     >
       {activePlayer && (
         <div className="stack">
