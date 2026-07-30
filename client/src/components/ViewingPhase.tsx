@@ -10,10 +10,10 @@ interface ViewingPhaseProps {
   onCompleteViewing: (playerId: string) => void;
 }
 
-type ViewStep = "role" | "image";
+type ViewStep = "ready" | "revealed";
 
 export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: ViewingPhaseProps) {
-  const [viewStep, setViewStep] = useState<ViewStep>("role");
+  const [viewStep, setViewStep] = useState<ViewStep>("ready");
   const activePlayer = state.players.find((player) => player.id === state.activePlayerId);
 
   if (!state.image) return null;
@@ -21,7 +21,7 @@ export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: Viewi
   const playerIsImposter = activePlayer ? isImposter(state, activePlayer.id) : false;
 
   function handleSelectPlayer(playerId: string) {
-    setViewStep("role");
+    setViewStep("ready");
     onSelectPlayer(playerId);
   }
 
@@ -39,25 +39,19 @@ export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: Viewi
     >
       {activePlayer && (
         <div className="stack centered">
-          {viewStep === "role" ? (
+          {viewStep === "ready" ? (
             <>
-              <div className="private-role-card">
-                <p className="muted" style={{ margin: 0 }}>
-                  {activePlayer.name}, your assignment:
-                </p>
-                <h3>{playerIsImposter ? "You are an imposter" : "You are innocent"}</h3>
-                <p className="muted">
-                  {playerIsImposter
-                    ? "You will only see a small fragment of the image plus a few hints. Blend into the story without revealing you didn't see the full scene."
-                    : "You will see the complete image. Pay attention to every detail — you'll need them to spot imposters later."}
-                </p>
-              </div>
-              <button className="btn-primary" onClick={() => setViewStep("image")}>
-                Continue to image
+              <p className="muted" style={{ margin: 0 }}>
+                {activePlayer.name}, tap when you&apos;re ready to peek.
+              </p>
+              <button className="btn-primary" onClick={() => setViewStep("revealed")}>
+                Reveal
               </button>
             </>
           ) : (
             <>
+              {playerIsImposter && <span className="badge badge-danger">Imposter</span>}
+
               <GameImage
                 imageUrl={state.image.imageUrl}
                 viewMode={playerIsImposter ? "partial" : "full"}
@@ -74,7 +68,7 @@ export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: Viewi
               <button
                 className="btn-primary"
                 onClick={() => {
-                  setViewStep("role");
+                  setViewStep("ready");
                   onCompleteViewing(activePlayer.id);
                 }}
               >

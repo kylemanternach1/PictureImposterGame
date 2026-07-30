@@ -18,8 +18,8 @@ export function IntroScreen({ onBegin }: { onBegin: () => void }) {
           <div>
             <strong>Pass the device privately</strong>
             <p className="muted">
-              Each player taps their name, learns their role, and studies the image. Nobody else
-              should look.
+              Each player taps their name, then taps Reveal to see the image. Nobody else should
+              look.
             </p>
           </div>
         </div>
@@ -47,7 +47,7 @@ export function IntroScreen({ onBegin }: { onBegin: () => void }) {
 
         <div className="privacy-reminder">
           <strong>Privacy rule:</strong> Never hand the device to the next player while your image
-          or role is still on screen. Always tap &ldquo;Done&rdquo; first.
+          is still on screen. Always tap &ldquo;Done&rdquo; first.
         </div>
       </div>
 
