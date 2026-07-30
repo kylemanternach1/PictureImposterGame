@@ -1,10 +1,8 @@
-import { DiscussionScreen } from "./components/DiscussionScreen";
+import { HandoffScreen } from "./components/HandoffScreen";
 import { IntroScreen } from "./components/IntroScreen";
 import { RevealScreen } from "./components/RevealScreen";
 import { SetupScreen } from "./components/SetupScreen";
-import { StoryPhase } from "./components/StoryPhase";
 import { ViewingPhase } from "./components/ViewingPhase";
-import { VotingPhase } from "./components/VotingPhase";
 import { useLocalGame } from "./hooks/useLocalGame";
 
 export default function App() {
@@ -12,13 +10,10 @@ export default function App() {
     state,
     openSetup,
     startGame,
-    startNextRoundFlow,
     tapPlayer,
     completeViewing,
-    addStoryContribution,
-    castVote,
-    advanceToVoting,
-    quitToIntro,
+    revealImposters,
+    newGame,
   } = useLocalGame();
 
   if (state.phase === "generating") {
@@ -44,26 +39,10 @@ export default function App() {
           onSelectPlayer={tapPlayer}
           onCompleteViewing={completeViewing}
         />
-      ) : state.phase === "story" ? (
-        <StoryPhase
-          state={state}
-          onSelectPlayer={tapPlayer}
-          onSubmit={addStoryContribution}
-        />
-      ) : state.phase === "discussion" ? (
-        <DiscussionScreen state={state} onContinue={advanceToVoting} />
-      ) : state.phase === "voting" ? (
-        <VotingPhase
-          state={state}
-          onSelectPlayer={tapPlayer}
-          onVote={castVote}
-        />
-      ) : state.phase === "reveal" || state.phase === "ended" ? (
-        <RevealScreen
-          state={state}
-          onNextRound={startNextRoundFlow}
-          onQuit={quitToIntro}
-        />
+      ) : state.phase === "handoff" ? (
+        <HandoffScreen state={state} onRevealImposters={revealImposters} />
+      ) : state.phase === "reveal" ? (
+        <RevealScreen state={state} onNewGame={newGame} />
       ) : null}
     </main>
   );

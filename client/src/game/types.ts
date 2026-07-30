@@ -3,11 +3,8 @@ export type GamePhase =
   | "setup"
   | "generating"
   | "viewing"
-  | "story"
-  | "discussion"
-  | "voting"
-  | "reveal"
-  | "ended";
+  | "handoff"
+  | "reveal";
 
 export type PlayerRole = "innocent" | "imposter";
 
@@ -62,9 +59,6 @@ export interface GameState {
   generatingError: string | null;
 }
 
-export const STORY_MIN_WORDS = 3;
-export const STORY_MAX_WORDS = 30;
-export const VIEWING_DURATION_MS = 10_000;
 
 export function maxImpostersForPlayers(playerCount: number): number {
   return Math.max(1, playerCount - 1);

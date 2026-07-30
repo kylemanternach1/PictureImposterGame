@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getImposterHintTags, isImposter } from "../game/engine";
 import type { GameState } from "../game/types";
-import { VIEWING_DURATION_MS } from "../game/types";
 import { GameImage } from "./GameImage";
 import { PassAndPlayGate } from "./PassAndPlayGate";
 
@@ -17,25 +16,14 @@ export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: Viewi
   const [viewStep, setViewStep] = useState<ViewStep>("role");
   const activePlayer = state.players.find((player) => player.id === state.activePlayerId);
 
-  useEffect(() => {
-    if (state.activePlayerId) {
-      setViewStep("role");
-    }
-  }, [state.activePlayerId]);
-
-  useEffect(() => {
-    if (!state.contentRevealed || !activePlayer || viewStep !== "image") return;
-
-    const timer = setTimeout(() => {
-      onCompleteViewing(activePlayer.id);
-    }, VIEWING_DURATION_MS);
-
-    return () => clearTimeout(timer);
-  }, [state.contentRevealed, activePlayer, viewStep, onCompleteViewing]);
-
   if (!state.image) return null;
 
   const playerIsImposter = activePlayer ? isImposter(state, activePlayer.id) : false;
+
+  function handleSelectPlayer(playerId: string) {
+    setViewStep("role");
+    onSelectPlayer(playerId);
+  }
 
   return (
     <PassAndPlayGate
@@ -46,7 +34,7 @@ export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: Viewi
       contentRevealed={state.contentRevealed}
       isPlayerEligible={(player) => !player.hasViewedImage}
       isPlayerDone={(player) => player.hasViewedImage}
-      onSelectPlayer={onSelectPlayer}
+      onSelectPlayer={handleSelectPlayer}
       coverMessage="Look away, then hand the device to the next player. They tap their name when ready."
     >
       {activePlayer && (
@@ -61,7 +49,7 @@ export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: Viewi
                 <p className="muted">
                   {playerIsImposter
                     ? "You will only see a small fragment of the image plus a few hints. Blend into the story without revealing you didn't see the full scene."
-                    : "You will see the complete image. Pay attention to every detail — you'll need them for the story and to spot imposters later."}
+                    : "You will see the complete image. Pay attention to every detail — you'll need them to spot imposters later."}
                 </p>
               </div>
               <button className="btn-primary" onClick={() => setViewStep("image")}>
@@ -80,10 +68,16 @@ export function ViewingPhase({ state, onSelectPlayer, onCompleteViewing }: Viewi
               <p className="muted" style={{ maxWidth: 420 }}>
                 {playerIsImposter
                   ? "Memorize what you can from this fragment."
-                  : "Memorize the full scene — you'll build a story from it."}
+                  : "Memorize the full scene before you pass the device."}
               </p>
 
-              <button className="btn-primary" onClick={() => onCompleteViewing(activePlayer.id)}>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setViewStep("role");
+                  onCompleteViewing(activePlayer.id);
+                }}
+              >
                 Done — pass device
               </button>
             </>

@@ -5,13 +5,11 @@ import {
   createInitialState,
   finishViewing,
   goToSetup,
-  goToVoting,
   resetGame,
+  returnToSetup,
+  revealImposters,
   selectActivePlayer,
   setupPlayers,
-  startNextRound,
-  submitStory,
-  submitVote,
 } from "../game/engine";
 import type { GameState } from "../game/types";
 import { generateRoundImage } from "../game/generateImage";
@@ -38,31 +36,6 @@ export function useLocalGame() {
     }
   }, []);
 
-  const startNextRoundFlow = useCallback(async () => {
-    let shouldGenerate = false;
-    setState((current) => {
-      if (current.roundNumber >= current.maxRounds) {
-        return { ...current, phase: "ended" };
-      }
-      shouldGenerate = true;
-      return beginGenerating(startNextRound(current));
-    });
-
-    if (!shouldGenerate) return;
-
-    try {
-      const image = await generateRoundImage();
-      setState((current) => beginRound(current, image));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Image generation failed";
-      setState((current) => ({
-        ...current,
-        phase: "reveal",
-        generatingError: message,
-      }));
-    }
-  }, []);
-
   const tapPlayer = useCallback((playerId: string) => {
     setState((current) => selectActivePlayer(current, playerId));
   }, []);
@@ -71,16 +44,12 @@ export function useLocalGame() {
     setState((current) => finishViewing(current, playerId));
   }, []);
 
-  const addStoryContribution = useCallback((playerId: string, text: string) => {
-    setState((current) => submitStory(current, playerId, text));
+  const revealImpostersFlow = useCallback(() => {
+    setState((current) => revealImposters(current));
   }, []);
 
-  const castVote = useCallback((voterId: string, targetId: string) => {
-    setState((current) => submitVote(current, voterId, targetId));
-  }, []);
-
-  const advanceToVoting = useCallback(() => {
-    setState((current) => goToVoting(current));
+  const newGame = useCallback(() => {
+    setState((current) => returnToSetup(current));
   }, []);
 
   const quitToIntro = useCallback(() => {
@@ -91,12 +60,10 @@ export function useLocalGame() {
     state,
     openSetup,
     startGame,
-    startNextRoundFlow,
     tapPlayer,
     completeViewing,
-    addStoryContribution,
-    castVote,
-    advanceToVoting,
+    revealImposters: revealImpostersFlow,
+    newGame,
     quitToIntro,
   };
 }

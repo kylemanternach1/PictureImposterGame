@@ -18,8 +18,8 @@ export function IntroScreen({ onBegin }: { onBegin: () => void }) {
           <div>
             <strong>Pass the device privately</strong>
             <p className="muted">
-              When it&apos;s your turn, tap your name. The screen stays covered until you do — nobody
-              else should look.
+              Each player taps their name, learns their role, and studies the image. Nobody else
+              should look.
             </p>
           </div>
         </div>
@@ -27,10 +27,10 @@ export function IntroScreen({ onBegin }: { onBegin: () => void }) {
         <div className="instruction-step">
           <span className="step-number">2</span>
           <div>
-            <strong>Learn your role &amp; study the image</strong>
+            <strong>Build a story out loud</strong>
             <p className="muted">
-              Innocents see the full surreal scene. Imposters only get a cropped fragment and a few
-              hint tags.
+              The app tells you who goes first. Take turns telling a story about the image —
+              imposters only saw a sneak peek!
             </p>
           </div>
         </div>
@@ -38,39 +38,16 @@ export function IntroScreen({ onBegin }: { onBegin: () => void }) {
         <div className="instruction-step">
           <span className="step-number">3</span>
           <div>
-            <strong>Build the story together</strong>
+            <strong>Reveal the imposters</strong>
             <p className="muted">
-              Take turns adding words to one ongoing tale. Imposters must blend in without giving
-              themselves away.
-            </p>
-          </div>
-        </div>
-
-        <div className="instruction-step">
-          <span className="step-number">4</span>
-          <div>
-            <strong>Discuss &amp; vote</strong>
-            <p className="muted">
-              Talk about who derailed the story or fixated on a random detail. Vote out who you
-              think is an imposter.
-            </p>
-          </div>
-        </div>
-
-        <div className="instruction-step">
-          <span className="step-number">5</span>
-          <div>
-            <strong>Reveal</strong>
-            <p className="muted">
-              See the full image, who the imposters were, and how suspicious each contribution
-              looked.
+              When you&apos;re done playing, tap to reveal who was faking it, then start a new game.
             </p>
           </div>
         </div>
 
         <div className="privacy-reminder">
-          <strong>Privacy rule:</strong> Never hand the device to the next player while your image,
-          role, or vote is still on screen. Always tap &ldquo;Done&rdquo; first.
+          <strong>Privacy rule:</strong> Never hand the device to the next player while your image
+          or role is still on screen. Always tap &ldquo;Done&rdquo; first.
         </div>
       </div>
 
